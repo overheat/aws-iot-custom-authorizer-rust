@@ -1,4 +1,1 @@
-{
-  "message": "value1",
-  "firstName": "value2"
-}
+{ "command": "do something" }
