@@ -1,16 +1,26 @@
 import { Stack, StackProps } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-// import * as sqs from 'aws-cdk-lib/aws-sqs';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
+import * as logs from 'aws-cdk-lib/aws-logs';
 
 export class Cdkv2SamLambdaRustStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
 
-    // The code that defines your stack goes here
-
-    // example resource
-    // const queue = new sqs.Queue(this, 'Cdkv2SamLambdaRustQueue', {
-    //   visibilityTimeout: cdk.Duration.seconds(300)
-    // });
+    // Function that calls Rust
+    new lambda.Function(this, 'rust-lambda', {
+      description:
+        'Rust function on Lambda using the custom runtime',
+      code: lambda.Code.fromAsset(
+        'functions/target/x86_64-unknown-linux-musl/release'
+      ),
+      runtime: lambda.Runtime.PROVIDED_AL2,
+      architecture: lambda.Architecture.X86_64,
+      handler: 'not.required',
+      environment: {
+        RUST_BACKTRACE: '1',
+      },
+      logRetention: logs.RetentionDays.ONE_WEEK,
+    })
   }
 }
