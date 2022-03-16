@@ -7,9 +7,18 @@ use std::fs::File;
 /// that tells the Lambda what is expected of it.
 #[derive(Deserialize)]
 struct Request {
-//   token: String,
-//   signature: bool,
-  event_type: EventType,
+  token: String,
+  signatureVerified: bool,
+  protocols: Vec<Prococol>, //   connectionMetadata:
+                            //   event_type: EventType
+}
+
+/// Event types that tell our Lambda what to do do.
+#[derive(Deserialize, PartialEq)]
+enum Prococol {
+  tls,
+  http,
+  mqtt,
 }
 
 /// Event types that tell our Lambda what to do do.
@@ -21,10 +30,19 @@ enum EventType {
   CustomError,
   Panic,
 }
-
+#[derive(Debug, Serialize)]
+struct Policy {
+  Version: String,
+  // Statement:
+}
 /// A simple Lambda response structure.
 #[derive(Serialize)]
 struct Response {
+  isAuthenticated: bool,
+  principalId: String,
+  disconnectAfterInSeconds: u32,
+  refreshAfterInSeconds: u32,
+  //   policyDocuments: Policy,
   req_id: String,
   msg: String,
 }
@@ -71,49 +89,72 @@ async fn main() -> Result<(), Error> {
 pub(crate) async fn func(event: LambdaEvent<Value>) -> Result<Value, Error> {
   let (event, ctx) = event.into_parts();
 
-//   let resp = Response {
-//     req_id: ctx.request_id,
-//     // msg: (stage + "OK!").into(),
-//     msg: "OK!".into(),
-//   };
-
-//   return Ok(json!(resp));
-
-//   check what action was requested
-  match serde_json::from_value::<Request>(event)?.event_type {
-      EventType::SimpleError => {
-          // generate a simple text message error using `simple_error` crate
-          return Err(Box::new(simple_error::SimpleError::new("A simple error as requested!")));
-      }
-      EventType::CustomError => {
-          // generate a custom error using our own structure
-          let cust_err = CustomError {
-              is_authenticated: ctx.identity.is_some(),
-              req_id: ctx.request_id,
-              msg: "A custom error as requested!".into(),
-          };
-          return Err(Box::new(cust_err));
-      }
-      EventType::ExternalError => {
-          // try to open a non-existent file to get an error and propagate it with `?`
-          let _file = File::open("non-existent-file.txt")?;
-
-          // it should never execute past the above line
-          unreachable!();
-      }
-      EventType::Panic => {
-          panic!();
-      }
-      EventType::Response => {
-          // let stage = std::env::var("STAGE").expect("Missing STAGE env var");
-          // generate and return an OK response in JSON format
-          let resp = Response {
-              req_id: ctx.request_id,
-              // msg: (stage + "OK!").into(),
-              msg: ctx.env_config.function_name + "OK!".into(),
-          };
-
-          return Ok(json!(resp));
-      }
+  match serde_json::from_value::<Request>(event)?.signatureVerified {
+    true => {
+      tracing::info!("true")
+    }
+    false => {
+      tracing::info!("false")
+    }
   }
+
+  let resp = Response {
+    isAuthenticated: true,
+    principalId: "xxxxx".to_string(),
+    disconnectAfterInSeconds: 86400,
+    refreshAfterInSeconds: 300,
+    // policyDocuments:
+    req_id: ctx.request_id,
+    // msg: (stage + "OK!").into(),
+    msg: ctx.env_config.function_name + "OK!".into(),
+  };
+
+  return Ok(json!(resp));
+  //   tracing::info!(token, "token is");
+
+  //   let resp = Response {
+  //     req_id: ctx.request_id,
+  //     // msg: (stage + "OK!").into(),
+  //     msg: "OK!".into(),
+  //   };
+
+  //   return Ok(json!(resp));
+
+  //   check what action was requested
+  //   match serde_json::from_value::<Request>(event)?.event_type {
+  //       EventType::SimpleError => {
+  //           // generate a simple text message error using `simple_error` crate
+  //           return Err(Box::new(simple_error::SimpleError::new("A simple error as requested!")));
+  //       }
+  //       EventType::CustomError => {
+  //           // generate a custom error using our own structure
+  //           let cust_err = CustomError {
+  //               is_authenticated: ctx.identity.is_some(),
+  //               req_id: ctx.request_id,
+  //               msg: "A custom error as requested!".into(),
+  //           };
+  //           return Err(Box::new(cust_err));
+  //       }
+  //       EventType::ExternalError => {
+  //           // try to open a non-existent file to get an error and propagate it with `?`
+  //           let _file = File::open("non-existent-file.txt")?;
+
+  //           // it should never execute past the above line
+  //           unreachable!();
+  //       }
+  //       EventType::Panic => {
+  //           panic!();
+  //       }
+  //       EventType::Response => {
+  //           // let stage = std::env::var("STAGE").expect("Missing STAGE env var");
+  //           // generate and return an OK response in JSON format
+  //           let resp = Response {
+  //               req_id: ctx.request_id,
+  //               // msg: (stage + "OK!").into(),
+  //               msg: ctx.env_config.function_name + "OK!".into(),
+  //           };
+
+  //           return Ok(json!(resp));
+  //       }
+  //   }
 }

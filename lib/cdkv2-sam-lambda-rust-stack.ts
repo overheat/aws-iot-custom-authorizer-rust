@@ -12,7 +12,7 @@ export class Cdkv2SamLambdaRustStack extends Stack {
       description:
         'Rust function on Lambda using the custom runtime',
       code: lambda.Code.fromAsset(
-        'functions/lambda'
+        'functions/target/x86_64-unknown-linux-musl/debug/'
       ),
       runtime: lambda.Runtime.PROVIDED_AL2,
       architecture: lambda.Architecture.X86_64,
