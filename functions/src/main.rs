@@ -54,9 +54,9 @@ async fn main() -> Result<(), Error> {
         .with_max_level(tracing::Level::INFO)
         // this needs to be set to false, otherwise ANSI color codes will
         // show up in a confusing manner in CloudWatch logs.
-        // .with_ansi(false)
+        .with_ansi(false)
         // disabling time is handy because CloudWatch will add the ingestion time.
-        // .without_time()
+        .without_time()
         .init();
 
     // call the actual handler of the request
