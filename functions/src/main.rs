@@ -54,9 +54,9 @@ async fn main() -> Result<(), Error> {
         .with_max_level(tracing::Level::INFO)
         // this needs to be set to false, otherwise ANSI color codes will
         // show up in a confusing manner in CloudWatch logs.
-        .with_ansi(false)
+        // .with_ansi(false)
         // disabling time is handy because CloudWatch will add the ingestion time.
-        .without_time()
+        // .without_time()
         .init();
 
     // call the actual handler of the request
@@ -95,10 +95,12 @@ pub(crate) async fn func(event: LambdaEvent<Value>) -> Result<Value, Error> {
             panic!();
         }
         EventType::Response => {
+            // let stage = std::env::var("STAGE").expect("Missing STAGE env var");
             // generate and return an OK response in JSON format
             let resp = Response {
                 req_id: ctx.request_id,
-                msg: "OK".into(),
+                // msg: (stage + "OK!").into(),
+                msg: "OK!".into(),
             };
 
             return Ok(json!(resp));
