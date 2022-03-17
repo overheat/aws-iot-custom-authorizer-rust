@@ -42,9 +42,9 @@ struct Response {
   principalId: String,
   disconnectAfterInSeconds: u32,
   refreshAfterInSeconds: u32,
-  //   policyDocuments: Policy,
-  req_id: String,
-  msg: String,
+    policyDocuments: Value,
+//   req_id: String,
+//   msg: String,
 }
 
 #[derive(Debug, Serialize)]
@@ -148,10 +148,21 @@ pub(crate) async fn func(event: LambdaEvent<Value>) -> Result<Value, Error> {
     principalId: "xxxxx".to_string(),
     disconnectAfterInSeconds: 86400,
     refreshAfterInSeconds: 300,
-    // policyDocuments:
-    req_id: ctx.request_id,
+    policyDocuments: json!([
+      {
+        "Version": "2012-10-17",
+        "Statement": [
+           {
+              "Action": "iot:Publish",
+              "Effect": "Allow",
+              "Resource": "arn:aws:iot:us-east-1:<your_aws_account_id>:topic/customauthtesting"
+            }
+         ]
+       }
+    ]),
+    // req_id: ctx.request_id,
     // msg: (stage + "OK!").into(),
-    msg: ctx.env_config.function_name + "OK!".into(),
+    // msg: ctx.env_config.function_name + "OK!".into(),
   };
 
   return Ok(json!(resp));

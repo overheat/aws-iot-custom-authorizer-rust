@@ -1,1 +1,18 @@
-{"connectionMetadata":{"id":1234567890},"protocolData":{"http":{"headers":{"#{name}":"#{value}"},"queryString":"?#{name}=#{value}"},"mqtt":{"clientId":"myClientId","password":"myPassword","username":"myUserName"},"tls":{"serverName":"serverName"}},"protocols":["tls","http","mqtt"],"signatureVerified":false,"token":"aToken"}
+{
+    "disconnectAfterInSeconds": 86400,
+    "isAuthenticated": true,
+    "policyDocuments": [
+        {
+            "Statement": [
+                {
+                    "Action": "iot:Publish",
+                    "Effect": "Allow",
+                    "Resource": "arn:aws:iot:us-east-1:<your_aws_account_id>:topic/customauthtesting"
+                }
+            ],
+            "Version": "2012-10-17"
+        }
+    ],
+    "principalId": "xxxxx",
+    "refreshAfterInSeconds": 300
+}
