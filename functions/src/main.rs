@@ -1,6 +1,6 @@
 use lambda_runtime::{service_fn, Error, LambdaEvent};
 use serde::{Deserialize, Serialize};
-use serde_json::{json, Value, Map};
+use serde_json::{json, Map, Value};
 
 /// A simple Lambda request structure with just one field
 /// that tells the Lambda what is expected of it.
@@ -10,7 +10,7 @@ struct Request {
   signatureVerified: bool,
   protocols: Vec<String>,
   protocolData: Value,
-connectionMetadata: Map<String, Value>
+  connectionMetadata: Map<String, Value>,
 }
 
 /// Event types that tell our Lambda what to do do.
@@ -88,43 +88,60 @@ async fn main() -> Result<(), Error> {
 /// The actual handler of the Lambda request.
 pub(crate) async fn func(event: LambdaEvent<Value>) -> Result<Value, Error> {
   let (event, ctx) = event.into_parts();
-tracing::info!("{} {}",  "Request is", event,);
-let e : Request = serde_json::from_value(event)?;
-// tracing::info!("{} {}",  "Token is", event["token"],);
-// tracing::info!("{} {}",  "signature is", event["signatureVerified"],);
-// tracing::info!("{} {}",  "protocols is", event["protocols"],);
-// tracing::info!("{} {}",  "protocolData is", event["protocolData"],);
-// tracing::info!("{} {}",  "connectionMetadata is", event["connectionMetadata"],);
-if let token = e.token {
-    tracing::info!("{}", token);
-}
-if let  [tls, http, mqtt] = e.protocols.as_slice(){
-        tracing::info!("First {} handshaking, then {} upgrade to Websocket.
-                        Finally {} over Websocket protocal.", tls, http, mqtt);
-}
-//   match e.protocols.as_slice(){
-//       // https
-//     //   [tls, http] => {
-//     //     tracing::info!("HTTPS protocal: {} {} ", tls, http,);
-//     //   },
-//       // mqtts
-//     //   [first,  second] => {
-//     //     tracing::info!("MQTT over TLS protocal: {} {}", first,  second);
-//     //   },
-//       // wss
-//       [tls, http, mqtt] => {
-//         tracing::info!("MQTT over Websocket protocal: {} {} {}", tls, http, mqtt);
-//       },
-//       _ => tracing::info!("protocol don't know, ignore!")
-//   }
-//   match serde_json::from_value::<Request>(event)?.signatureVerified {
-//     true => {
-//       tracing::info!("true")
-//     }
-//     false => {
-//       tracing::info!("false")
-//     }
-//   }
+  // tracing::info!("{} {}", "Request is", event,);
+  let e: Request = serde_json::from_value(event)?;
+  // tracing::info!("{} {}",  "Token is", event["token"],);
+  // tracing::info!("{} {}",  "signature is", event["signatureVerified"],);
+  // tracing::info!("{} {}",  "protocols is", event["protocols"],);
+  // tracing::info!("{} {}",  "protocolData is", event["protocolData"],);
+  // tracing::info!("{} {}",  "connectionMetadata is", event["connectionMetadata"],);
+  tracing::info!("{}", e.token);
+  tracing::info!("{}", e.signatureVerified);
+  tracing::info!("{:?}", e.protocols);
+
+  match e.protocols.as_slice() {
+    [first, middle @ .., last] => {}
+    _ => {}
+  }
+
+  tracing::info!("{}", e.protocolData);
+  //   tracing::info!("{}", e.connectionMetadata.identifying);
+
+  if let [first, middle @ .., last] = e.protocols.as_slice() {
+    tracing::info!("{} {:?} {}", first, middle, last);
+    if middle.is_empty() && last == "http" {
+      tracing::info!("HTTPS");
+    } else if middle.is_empty() && last == "mqtt" {
+      tracing::info!("MQTT over TLS");
+    } else if middle.len() == 1 && middle[0] == "http" && last == "mqtt" {
+      tracing::info!("MQTT over Websocket");
+    }
+  }
+  tracing::info!("Unknown protocal {:?}", e.protocols);
+  //   tracing::warn!("Unkonwn protocal {}", e.protocols);
+  //   match e.protocols.as_slice(){
+  //       // https
+  //     //   [tls, http] => {
+  //     //     tracing::info!("HTTPS protocal: {} {} ", tls, http,);
+  //     //   },
+  //       // mqtts
+  //     //   [first,  second] => {
+  //     //     tracing::info!("MQTT over TLS protocal: {} {}", first,  second);
+  //     //   },
+  //       // wss
+  //       [tls, http, mqtt] => {
+  //         tracing::info!("MQTT over Websocket protocal: {} {} {}", tls, http, mqtt);
+  //       },
+  //       _ => tracing::info!("protocol don't know, ignore!")
+  //   }
+  //   match serde_json::from_value::<Request>(event)?.signatureVerified {
+  //     true => {
+  //       tracing::info!("true")
+  //     }
+  //     false => {
+  //       tracing::info!("false")
+  //     }
+  //   }
 
   let resp = Response {
     isAuthenticated: true,
